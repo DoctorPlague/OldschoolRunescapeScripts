@@ -1,4 +1,3 @@
-import org.osbot.rs07.api.map.Area;
 import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
@@ -6,9 +5,7 @@ import org.osbot.rs07.script.ScriptManifest;
 import java.awt.*;
 
 @ScriptManifest(author = "You", info = "My first script", name = "Tea thiever", version = 0, logo = "")
-public class main extends Script {
-	
-	private Area faladorBank = new Area(2945, 3367, 2949, 3367);
+public class main extends Script {	
 
 	@Override
 	public void onStart() {

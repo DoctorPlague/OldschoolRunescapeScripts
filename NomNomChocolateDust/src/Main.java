@@ -1,15 +1,16 @@
-import org.osbot.rs07.api.map.Area;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 import org.osbot.rs07.utility.ConditionalSleep;
 
-import java.awt.*;
- 
- 
-@ScriptManifest(name = "NomNomChocolateDust", author = "Plague Doctor", version = 1.0, info = "Turns Chocolate bars into Chocolate dust.", logo = "IMGURLINKTOLOGO(NOTNEEDED)")
-public class Main extends Script { 
+
+
+import java.awt.*; 
 
  
+@ScriptManifest(name = "NomNomChocolateDust", author = "Plague Doctor", version = 1.0, info = "Turns Chocolate bars into Chocolate dust.", logo = "http://i.imgur.com/OmO9g77.png")
+public class Main extends Script { 
+
+	
     @Override
     public void onStart() {
         // This gets executed when the script first starts.
@@ -108,8 +109,7 @@ public class Main extends Script {
     public void onExit() {
         // This will get executed when the user hits the stop script button.
  
- 
-    }   
+    }          
  
     @Override
     public void onPaint(Graphics2D g) {  
