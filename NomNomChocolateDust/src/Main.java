@@ -6,8 +6,7 @@ import java.awt.*;
  
 @ScriptManifest(name = "NomNomChocolateDust", author = "Plague Doctor", version = 1.0, info = "Turns Chocolate bars into Chocolate dust.", logo = "IMGURLINKTOLOGO(NOTNEEDED)")
 public class Main extends Script { 
-	private Area varrockWestBank = new Area(3180, 3447, 3190, 3433); // Creates varrockWestBank location.
-	
+
  
     @Override
     public void onStart() {
@@ -15,7 +14,7 @@ public class Main extends Script {
     }
     
     private enum State {
-		BANK_INVENTORY, WAIT, WALK_TO_BANK, GRIND, // Declares the different states of the program.
+		BANK_INVENTORY, WAIT, GRIND, // Declares the different states of the program.
 	};
 
 	private State getState()
@@ -63,39 +62,44 @@ public class Main extends Script {
     		break;    		// You should break here instead of return 700, because the return at the end of the function will be called anyway.
     		
     	case BANK_INVENTORY: // Opens a nearby bank and deposits everything in the inventory except the knife.
-    		if(!getBank().isOpen())
-    		{
-    			getBank().open();
-    		}
+    		if ((map.isWithinRange(objects.closest("Bank booth"), 10) || map.isWithinRange(objects.closest("Grand exchange booth"), 10) )&& !bank.isOpen())  // Checks if a bank booth, or grand exchange booth is within range and the bank isnt open
+			{
+				bank.open(); //attempts to open the bank
+				new ConditionalSleep(10000) { //how many ms to wait for condition
+					@Override
+
+					public boolean condition() throws InterruptedException {
+						return bank.isOpen(); //ends conditional sleep if bank is open
+					}
+				}.sleep();
+			}
 			else
 			{
-				// Have all code that handles banking in one area.
-				if(!inventory.contains("Knife"))
-				{
-					getBank().withdraw("Knife", 1);
-				}
-				getBank().depositAllExcept("Knife");
-				if(!getBank().contains("Chocolate bar")) // or  || getBank().getAmount(ITEM) &lt; MIN)
-				{
-					stop();
-				}
-				getBank().withdraw("Chocolate bar", 27);
-				getBank().close();    
-			}
+				new ConditionalSleep(10000) { //how many ms to wait for condition
+					@Override
 
-    		break;
-    	case WALK_TO_BANK:
-    		if(!varrockWestBank.contains(myPlayer())) // Checks if the player is already in the Varrock west bank.
-    		{
-			// You already had the west banks location defined at the top of the page, dont define the same thing twice!!!
-        		getWalking().webWalk(varrockWestBank);
-    		}
-    		// Should add a case to make the user drop his whole bank at GE on world 1
-    		break;  		
-    		
-    	
-    	}
-    	
+					public boolean condition() throws InterruptedException {
+						if(!inventory.contains("Knife"))
+						{
+							getBank().withdraw("Knife", 1);
+						}
+						else if(!getBank().contains("Chocolate bar")) // or  || getBank().getAmount(ITEM) &lt; MIN)
+						{
+							stop();
+						}
+						getBank().depositAllExcept("Knife");
+						getBank().withdraw("Chocolate bar", 27);
+						getBank().close();  
+						
+						return (getInventory().contains("Knife") && getInventory().contains("Chocolate bar"); // If inventory contains knife and inventory contains chocolate bar it will return true. and end sleep
+					}
+				}.sleep();
+				  
+			}
+			
+					
+		}
+    		break;    	
     	 	
  
         return 800; //The amount of time in milliseconds before the loop is called again
