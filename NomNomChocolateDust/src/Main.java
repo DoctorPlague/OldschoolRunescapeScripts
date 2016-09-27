@@ -29,11 +29,7 @@ public class Main extends Script {
 			if(varrockWestBank.contains(myPlayer()))
 			{
 				return State.BANK_INVENTORY;
-			}
-			if(!getBank().contains("Chocolate bar")) // or  || getBank().getAmount(ITEM) &lt; MIN)
-			{
-				stop();
-			}
+			}			
 			else
 			{
 				return State.WALK_TO_BANK; 
@@ -79,7 +75,10 @@ public class Main extends Script {
 					getBank().withdraw("Knife", 1);
 				}
 				getBank().depositAllExcept("Knife");
-				
+				if(!getBank().contains("Chocolate bar")) // or  || getBank().getAmount(ITEM) &lt; MIN)
+				{
+					stop();
+				}
 				getBank().withdraw("Chocolate bar", 27);
 				getBank().close();    
 			}
