@@ -1,6 +1,8 @@
 import org.osbot.rs07.api.map.Area;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
+import org.osbot.rs07.utility.ConditionalSleep;
+
 import java.awt.*;
  
  
@@ -25,14 +27,7 @@ public class Main extends Script {
 		}
 		if(!inventory.contains("Knife") || !inventory.contains("Chocolate bar"))
 		{
-			if(varrockWestBank.contains(myPlayer()))
-			{
-				return State.BANK_INVENTORY;
-			}			
-			else
-			{
-				return State.WALK_TO_BANK; 
-			}
+			return State.BANK_INVENTORY;					
 		}
 		if(inventory.contains("Chocolate bar")) // If inventory contains any Chocolate bars, it will 'GRIND'.
 		{
@@ -91,15 +86,16 @@ public class Main extends Script {
 						getBank().withdraw("Chocolate bar", 27);
 						getBank().close();  
 						
-						return (getInventory().contains("Knife") && getInventory().contains("Chocolate bar"); // If inventory contains knife and inventory contains chocolate bar it will return true. and end sleep
+						return (getInventory().contains("Knife") && getInventory().contains("Chocolate bar")); // If inventory contains knife and inventory contains chocolate bar it will return true. and end sleep
 					}
 				}.sleep();
 				  
 			}
 			
 					
-		}
-    		break;    	
+		
+    		break; 
+    	}
     	 	
  
         return 800; //The amount of time in milliseconds before the loop is called again
