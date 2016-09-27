@@ -30,6 +30,10 @@ public class Main extends Script {
 			{
 				return State.BANK_INVENTORY;
 			}
+			if(!getBank().contains("Chocolate bar")) // or  || getBank().getAmount(ITEM) &lt; MIN)
+			{
+				stop();
+			}
 			else
 			{
 				return State.WALK_TO_BANK; 
