@@ -1,0 +1,161 @@
+import org.osbot.rs07.api.map.Area;
+import org.osbot.rs07.api.map.Position;
+import org.osbot.rs07.script.Script;
+import org.osbot.rs07.script.ScriptManifest;
+import java.awt.*;
+ 
+ 
+@ScriptManifest(name = "NomNomChocolateDust", author = "YOURNAME", version = 1.0, info = "INFO(NOTNEEDED)", logo = "IMGURLINKTOLOGO(NOTNEEDED)")
+public class Main extends Script { 
+	private Area varrockWestBank = new Area(3180, 3447, 3190, 3433);
+	
+ 
+    @Override
+    public void onStart() {
+        // This gets executed when the script first starts.
+    	
+    	
+
+ 
+    }
+    
+    private enum State {
+		BANK_INVENTORY, WAIT, WALK_TO_BANK, GRIND, WITHDRAW_KNIFE, WITHDRAW_CHOCOLATE
+	};
+
+	private State getState() {		
+		if(myPlayer().isMoving() && myPlayer().isAnimating())
+		{ 
+			return State.WAIT;
+		}
+		if(!inventory.contains(946))
+	    {
+	    	return State.WITHDRAW_KNIFE;
+	    }
+		if(inventory.isEmptyExcept(964))
+	    {
+	        return State.WITHDRAW_CHOCOLATE;
+	    }
+		if(inventory.contains(1973))
+	    {
+	        return State.GRIND;
+	    }
+	    if(inventory.onlyContains(946, 1975))
+	    {
+	        return State.BANK_INVENTORY;
+	    }	    	    
+	    else 
+	    {
+	        return State.WALK_TO_BANK;
+	    }
+	} 
+    
+ 
+    @Override
+    public int onLoop() throws InterruptedException {    		
+    	switch  (getState()) {
+    	case GRIND:
+			if(getBank().isOpen())
+    		{
+    			getBank().close();      			
+    		}
+			else if(inventory.contains(1973))
+        	{
+            	getMouse().move(574,229);
+            	getMouse().click(false);
+            	
+            	sleep(random(400,600));
+            	
+            	
+            	getMouse().move(711,443);
+            	getMouse().click(false);        	
+        	}
+    		
+    		break;
+    		
+    	case WAIT:
+    		return 700;    		
+    		
+    	case BANK_INVENTORY:
+    		if(!getBank().isOpen())
+    		{
+    			getBank().open();
+    		}
+    		
+    		getBank().depositAllExcept(946);
+    		getBank().close();
+    		
+    		
+    		break;
+    	case WALK_TO_BANK:
+    		if(!varrockWestBank.contains(myPlayer()))
+    		{
+    			Position varrockWBank = new Position(3185, 3437, 0);
+        		getWalking().webWalk(varrockWBank);
+    		}
+    		
+    		break;
+    	
+    	case WITHDRAW_KNIFE:
+    		if(!inventory.contains(946))
+    		{
+    			if(!getBank().isOpen())
+        		{
+        			getBank().open();
+        		}
+    			else
+    			{
+    				getBank().withdraw(946, 1);
+    				getBank().close();
+    			}
+    		}
+    		
+    		break;
+    	
+    	case WITHDRAW_CHOCOLATE:
+    		if(inventory.contains(946) && (!inventory.contains(1973)))
+    		{
+    			if(!getBank().isOpen())
+        		{
+        			getBank().open();
+        		}
+        		else
+        		{
+        			getBank().withdraw(1973, 27);
+        			getBank().close();
+        		}
+    		}
+    			
+    		break;
+    		
+    		
+    	
+    	}
+    	
+    	 	
+ 
+        return 800; //The amount of time in milliseconds before the loop is called again
+    }
+    
+    @Override
+    public void onExit() {
+        // This will get executed when the user hits the stop script button.
+ 
+ 
+    }   
+ 
+    @Override
+    public void onPaint(Graphics2D g) {
+		Point mP = getMouse().getPosition();
+        g.setPaint(Color.white);
+        g.drawLine(mP.x - 1, 0, mP.x - 1, 500); // Above X
+        g.drawLine(mP.x + 1, 0, mP.x + 1, 500); // Below X
+        g.drawLine(0, mP.y - 1, 800, mP.y - 1); // Left Y
+        g.drawLine(0, mP.y + 1, 800, mP.y + 1); // Right Y
+        g.setPaint(Color.black);
+        g.drawLine(mP.x, 0, mP.x, 500); // At X
+        g.drawLine(0, mP.y, 800, mP.y); // At Y 
+    }
+ 
+ 
+}

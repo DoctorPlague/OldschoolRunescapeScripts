@@ -1,0 +1,538 @@
+package com.harleydaun.osrs.hironminer.core;
+
+import org.osbot.rs07.api.filter.Filter;
+import org.osbot.rs07.api.map.Area;
+import org.osbot.rs07.api.map.Position;
+import org.osbot.rs07.api.model.Entity;
+import org.osbot.rs07.api.model.Item;
+import org.osbot.rs07.api.ui.Skill;
+import org.osbot.rs07.script.Script;
+import org.osbot.rs07.script.ScriptManifest;
+import org.osbot.rs07.utility.Condition;
+import org.osbot.rs07.utility.ConditionalSleep;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import javax.imageio.ImageIO;
+
+
+
+@ScriptManifest(name = "HIronMiner", author = "Harley Daun", version = 1.0, info = "Mines iron ore, banks, hovers over next rocks", logo = "http://i.imgur.com/dxUObDr.png") 
+public class Main extends Script {
+	
+	public long startTime; // System time in ms that the user started the bot (i.e. settings in GUI finished).
+	public int oreValue; // Grand exchange value of the ore when user started bot. 
+	public int oreMined; // Number of ore that the script has mined.
+	public String readableStatus = ""; // The status used by the paint to display to the user.
+	public Area selectedBankArea; // The area that relates to the bank the user selected.
+	public Area selectedMineArea; // The are that relates to the mine the user selected.
+	public Position selectedMinePos; // The position the script should move character to, is indirectly selected by user in GUI.
+	public String selectedMineString; // String used for checking what mine is selected in Mine code, GetAction code and Hover code.
+	public int oreItemID; // The item ID of the ore that is selected, used for grand exchange.
+	
+	
+	private Action CurrentAction; // Used to allow for logging of current action now, later may be used for various other checks etc. 
+	private Filter<Item> PickaxeFilter = new Filter<Item>(){
+		@Override 
+		public boolean match(Item item) {
+			if(item.getName().toLowerCase().contains("pickaxe"))
+				return true;
+			return false;
+			}}; 
+	/* 
+	 * Filter used for checking if something is a pickaxe.
+	 * Not 100% safe if other items exist with pickaxe.
+	 * However this script should never be in that situation.
+	 */ 	
+	private Font runescape_chat_font; // Font used by paint
+	private BufferedImage paintBG; // Background image used for paint, loaded when GUI is done.
+	private InventoryMonitor monitor; 
+	/* 
+	 * Used for monitoring when the player actually gains an item. Allows for actually accurate counting of ores.
+	 * Found on forum, updated to function with current OSBot api.
+	 */
+	private SettingsGUI gui; // Instance of the GUI.
+	private boolean doneGUI = false; // Boolean checked in loops to see if user has finished using the GUI.
+	private Position currentlyMining; // Position of the ore the script is currently mining. Used in hovering functionality.
+
+    @Override
+    public void onStart() {
+    	gui = new SettingsGUI(this);
+    	gui.setVisible(true);
+    }
+    
+    
+    @Override
+    public void onExit() {
+    	if(gui != null) { // If the JFrame has been created
+
+            gui.setVisible(false); // Hide it
+            gui.dispose(); // Dispose
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public int onLoop() throws InterruptedException {
+    	if(!doneGUI || selectedMineArea == null  || selectedMinePos == null
+    			|| selectedBankArea == null || selectedMineString == null)
+    		return 700; // If the player has not finished the gui, or if for some reason the values were not set by GUI do nothing. (Values should never not be set)
+    	if (monitor != null && !getBank().isOpen() && monitor.hasChanged()) {
+            monitor.onChange();
+        } // Call to run the inventory monitor code each time the monitor has detected change.
+    	
+    	CurrentAction = getAction(); // Gets the current action based on current position etc.
+    	log("Current Action: " + CurrentAction); // Logs the current action.
+    	
+    	Entity rock;
+    	Entity rock1;
+    	Entity rock2;
+    	// Defined here rather than in the switch because switches don't have individual scopes for cases.
+    	// As such the it would look a little ugly to have it defined in one case but modified in another case.
+    	
+    	switch(CurrentAction)
+    	{
+    	case WALK_TO_BARBARIAN_VILLAGE: // Walks to the barbarian village as expected.
+    		readableStatus = "Walking to barbarian village to level to 15";
+    		getWalking().webWalk(Locations.AREA_BARBARIAN_VILLAGE);
+    		break; 
+    	
+    	case POWERMINE_TO_15: // Mines the nearest tin ore.
+    		readableStatus = "Powermining to level 15";
+    		rock =  getObjects().closest(
+                    obj -> obj.getName().equals("Rocks") && obj.getDefinition().getModifiedModelColors() != null && obj.getDefinition().getModifiedModelColors()[0] == Ore.Tin.GetModifiedColor()
+    		        );
+    		if(rock != null)
+    			rock.interact("Mine");
+    		break; 
+    		
+    	case EMPTY_INVENTORY: // Drops all except pickaxe in inventory.
+    		if(getInventory().isFull())
+    		{
+        		readableStatus = "Emptying inventory";
+    			getInventory().dropAllExcept(PickaxeFilter);
+    			
+    			if(getPickaxe(getInventory().getItem(PickaxeFilter).getName()).CanWield(this))
+    			{
+    				getInventory().getItem(PickaxeFilter).interact("Wield");
+    			}
+    			else
+    			{
+    				if(getInventory().getSlot(PickaxeFilter) != 0)
+    					moveItemInSlot(getInventory().getSlot(PickaxeFilter), 0);
+    			}
+    		}
+    		break;
+    		
+    	case WALK_TO_MINE: // Webwalks to the selected mine 
+    		readableStatus = "Walking to selected mine";
+    		currentlyMining = new Position(0, 0, 0);
+    		getWalking().webWalk(selectedMinePos);
+    		break;
+    		
+    		// TODO: Refactor iron to ore, change the getobjects to be all ores selected by relevant mine
+    	case MINE_IRON: // Checks relevant ore objects for selected mine, if available, mines them.
+    		switch(selectedMineString)
+    		{
+    		case "VE":
+    			rock1 = getObjects().get(3286, 3369).get(0);
+    			rock2 = getObjects().get(3285, 3368).get(0);
+    			if(rock1.getDefinition().getModifiedModelColors() != null && rock1.getDefinition().getModifiedModelColors()[0] == Ore.Iron.GetModifiedColor())
+        		{
+            		readableStatus = "Mining iron";
+        			currentlyMining = new Position(0, 0, 0);
+        			currentlyMining = rock1.getPosition();
+        			rock1.interact("Mine");
+        			break;
+        		}
+    			if(rock2.getDefinition().getModifiedModelColors() != null && rock2.getDefinition().getModifiedModelColors()[0] == Ore.Iron.GetModifiedColor())
+        		{
+            		readableStatus = "Mining iron";
+        			currentlyMining = new Position(0, 0, 0);
+        			currentlyMining = rock2.getPosition();
+        			rock2.interact("Mine");
+        			break;
+        		}
+    			
+    			break;
+    		case "VW":
+    			rock = getObjects().closest(
+    	                obj -> obj.getName().equals("Rocks")  && obj.getDefinition().getModifiedModelColors() != null 
+    	                && obj.getDefinition().getModifiedModelColors()[0] == Ore.Iron.GetModifiedColor()
+    			        );
+    			if(rock != null)
+        		{
+            		readableStatus = "Mining iron";
+        			currentlyMining = new Position(0, 0, 0);
+        			currentlyMining = rock.getPosition();
+        			rock.interact("Mine");
+        		}
+    			break;
+    				
+    		}
+    		
+    		break;
+    		
+    	case WALK_TO_BANK: // Webwalks to the selected bank area.
+    		readableStatus = "Walking to bank";
+    		currentlyMining = new Position(0, 0, 0);
+    		getWalking().webWalk(selectedBankArea);
+    		break;
+    		
+    	case BANK_ITEMS: // Performs the banking i.e. deposits ores, checks if there is a better pickaxe the character can use in bank. 
+    		readableStatus = "Banking items";
+    		currentlyMining = new Position(0, 0, 0);
+    		if(!getBank().isOpen())
+    		{
+    			getBank().open();
+    		}
+    		else
+    		{
+    			readableStatus = "Depositing items";
+    			getBank().depositAllExcept(PickaxeFilter);
+    			
+    			List<Item> pickaxesOwned = new ArrayList<Item>();
+    			pickaxesOwned.addAll(getBank().filter(PickaxeFilter));
+    			pickaxesOwned.addAll(getInventory().filter(PickaxeFilter));
+    			pickaxesOwned.addAll(getEquipment().filter(PickaxeFilter));
+    			
+    			log("Pickaxes Owned: ");
+    			for(Item i : pickaxesOwned)
+    			{
+    				log(i.getName());
+    			}
+    			log("Finished");
+    			String bestPickaxeOwned = getBestPickaxe(pickaxesOwned);
+    			log(bestPickaxeOwned);
+    			if(!getInventory().contains(bestPickaxeOwned) && !getEquipment().isWieldingWeapon(bestPickaxeOwned)
+    					&& getBank().contains(bestPickaxeOwned))
+    			{
+    				readableStatus = "Getting best pickaxe";
+    				getBank().depositWornItems();
+    				getBank().depositAll(PickaxeFilter);
+    				new ConditionalSleep(1500) { // Because of latency, sometimes withdraw will get called before the inventory is empty.
+    					@Override
+    					public boolean condition() throws InterruptedException {
+    						if(getInventory().isEmpty() && getEquipment().isEmpty())
+    							return true;
+    						return false;
+    					}
+    				}.sleep();
+    				
+    				getBank().withdraw(bestPickaxeOwned, 1); 
+    				new ConditionalSleep(5000) { // Because withdraw does not seem to wait until its finished, we will wait until its finished.
+    					@Override
+    					public boolean condition() throws InterruptedException {
+    						if(getInventory().contains(bestPickaxeOwned))
+    							return true;
+    						return false;
+    					}
+    				}.sleep();
+    				
+    			}
+    			getBank().close();
+    			
+    			if(getInventory().contains(bestPickaxeOwned) && !getEquipment().isWieldingWeapon(bestPickaxeOwned)
+    					&& getPickaxe(bestPickaxeOwned).CanWield(this))
+    			{
+    				readableStatus = "Wielding pickaxe";
+    				getInventory().getItem(bestPickaxeOwned).interact("Wield");
+    			}
+    		}
+    		
+    		break;
+    		
+    		//TODO: Make nicer hover code that doesn't require hardcoding.
+    	case HOVER_ROCK1: // Hovers over the rock that is hardcoded as the first rock, changes based on selected mine.
+    		
+    		switch(selectedMineString)
+    		{
+    		case "VE":
+    			readableStatus = "Hovering over next rock";
+    			getObjects().get(3286, 3369).get(0).hover();
+    			break;
+    		case "VW":
+    			readableStatus = "Hovering over next rock";
+        		getObjects().get(3175, 3368).get(0).hover();
+    			break;	
+    		}
+    		
+    		break;
+    	case HOVER_ROCK2: // Hovers over the rock that is hardcoded as the second rock, changes based on selected mine.
+    		switch(selectedMineString)
+    		{
+    		case "VE":	
+    			readableStatus = "Hovering over next rock";
+    			getObjects().get(3285, 3368).get(0).hover();
+    			break;
+    		case "VW":
+    			readableStatus = "Hovering over next rock";
+        		getObjects().get(3175, 3366).get(0).hover();
+    			break;
+    				
+    		}
+    		break;
+    		
+    	default:
+    		break;
+    	}
+    	
+
+        return 700;
+    }
+
+    @SuppressWarnings("unchecked")
+	public Action getAction() // Performs checks and determines what action should be performed.
+    {
+		if(!getInventory().contains(PickaxeFilter)
+				&& !getEquipment().isWieldingWeapon(PickaxeFilter)) // If the user has no pickaxe go to bank.
+		{
+			if(selectedBankArea.contains(myPlayer()))
+				return Action.BANK_ITEMS;
+			else
+				return Action.WALK_TO_BANK;
+		}
+    	if(myPlayer().isMoving() || myPlayer().isAnimating()) // If the player is moving or animating (i.e. walking or mining).
+    	{
+    		if(getSkills().getDynamic(Skill.MINING) > 15)
+    		switch(selectedMineString) // Do stuff depending on what mine is selected.
+    		{
+    		case "VE": // If varrock east is selected, check which rock should be hovered over and if its currently being hovered over.
+    			if(currentlyMining.getX() == 3286 && currentlyMining.getY() == 3369
+    				&& !getMouse().isOnCursor(getObjects().get(3285, 3368).get(0)))
+        		{
+        			return Action.HOVER_ROCK2;
+        		}
+        		else if(currentlyMining.getX() == 3285 && currentlyMining.getY() == 3368
+        				&& !getMouse().isOnCursor(getObjects().get(3286, 3369).get(0)))
+        		{
+        			return Action.HOVER_ROCK1;
+        		}
+    			if(currentlyMining.getX() != 0 && currentlyMining.getY() != 0)
+        		{
+        			Entity rock = getObjects().get(currentlyMining.getX(), currentlyMining.getY()).get(0);
+            		if(rock.getDefinition().getModifiedModelColors() != null && rock.getDefinition().getModifiedModelColors()[0] == Ore.Iron.GetModifiedColor())
+            		{
+            			return Action.MINE_IRON;
+            		}
+        		}
+    			break;
+    		case "VW": // Same thing but with varrock west rocks.
+    			if(currentlyMining.getX() == 3175 && currentlyMining.getY() == 3368
+    				&& !getMouse().isOnCursor(getObjects().get(3175, 3366).get(0)))
+        		{
+        			return Action.HOVER_ROCK2;
+        		}
+        		else if(currentlyMining.getX() == 3175 && currentlyMining.getY() == 3366
+        				&& !getMouse().isOnCursor(getObjects().get(3175, 3368).get(0)))
+        		{
+        			return Action.HOVER_ROCK1;
+        		}
+    			if(currentlyMining.getX() != 0 && currentlyMining.getY() != 0)
+        		{
+        			Entity rock = getObjects().get(currentlyMining.getX(), currentlyMining.getY()).get(0);
+            		if(rock.getDefinition().getModifiedModelColors() != null && rock.getDefinition().getModifiedModelColors()[0] == Ore.Iron.GetModifiedColor())
+            		{
+            			return Action.MINE_IRON;
+            		}
+        		}
+    			break;
+    		}
+    		
+    		
+    		return Action.NONE; // If we haven't needed to hover, do nothing as we are walking or mining.
+    	}
+    	
+    	if(getSkills().getDynamic(Skill.MINING) < 15) // If we can't yet mine iron, do checks related to barb village for powermining.
+    	{
+    		
+    		if(Locations.AREA_BARBARIAN_VILLAGE.contains(myPlayer())) // If we are in the village, check if we should emptyinventory, if so empty inv, if not powermine.
+    		{
+    			if(getInventory().isFull())
+    	    		return Action.EMPTY_INVENTORY;
+    			else
+    				return Action.POWERMINE_TO_15;
+    		}
+    		else // If we aren't in the village, walk there.
+    			return Action.WALK_TO_BARBARIAN_VILLAGE;
+    	}
+    	else // If we can, do checks related to selected mine.
+    	{
+    		if(getInventory().isFull()) // If our inventory is full, check if we are in the bank, if we are, bank items; if not, walk there.
+    		{
+    			if(selectedBankArea.contains(myPlayer()))
+    				return Action.BANK_ITEMS;
+    			else
+    				return Action.WALK_TO_BANK;
+    		}
+    		else if(selectedMineArea.contains(myPlayer())) // If our inventory isn't full, and we are in the mine, start mining.
+    			return Action.MINE_IRON;
+    		else // If our inventory isn't full and we are not in the mine, walk there
+    			return Action.WALK_TO_MINE; 
+    			
+       	}
+    }
+
+	// Found this code on the forum, used for moving the pickaxe to slot one if it aint there
+    public boolean moveItemInSlot(int slot1, final int slot2) throws InterruptedException { 
+		if (getInventory().isItemSelected()) {
+			getInventory().deselectItem();
+		}
+		return getMouse().continualClick(getInventory().getMouseDestination(slot1), new Condition() {
+			@Override
+			public boolean evaluate() {
+				getMouse().move(getInventory().getMouseDestination(slot2), true);
+				return getInventory().getMouseDestination(slot2).getBoundingBox().contains(getMouse().getPosition());
+			}
+		});
+	}
+    
+    // Returns the best pickaxe that is usable by the player out of a list of items provided.
+	private String getBestPickaxe(List<Item> pickaxes) {
+	
+		String bestPick = "";
+		
+		for(Item pick : pickaxes)
+		{
+			//log("Current: " + pick.getName() + " canmine? " + canMine(pick.getName()));
+			//log("Best: " + bestPick);
+			if(bestPick == "" && getPickaxe(pick.getName()).CanMineWith(this))
+			{
+				//log(pick.getName() + " was useable");
+				bestPick = pick.getName();
+			}
+			
+			if(bestPick != "" && betterThan(pick.getName(), bestPick) && getPickaxe(pick.getName()).CanMineWith(this))
+			{
+				//log(pick.getName() + " was better than " + bestPick);
+				bestPick = pick.getName();
+				
+			}
+		}
+
+		return bestPick;
+	}
+	
+	private Pickaxe getPickaxe(String itemName)
+	{
+		for(Pickaxe p : Pickaxe.values())
+		{
+			if(p.GetItemName().contains(itemName))
+				return p;
+		}
+		
+		return null;
+	}
+	
+	// Returns true if pick1 is better than pick2, does not check if its usable or not
+	private boolean betterThan(String pick1, String pick2)
+	{
+		Pickaxe p1 = getPickaxe(pick1);
+		Pickaxe p2 = getPickaxe(pick2);
+		
+		if(p1.GetValue() > p2.GetValue())
+			return true;
+		
+		return false;
+	}
+	
+	// Paint loop!
+    @Override
+    public void onPaint(Graphics2D g) {
+    	if(!doneGUI)
+    		return;
+    	long runTime = System.currentTimeMillis() - startTime;
+    	
+    	int gpGained = oreMined * oreValue;
+    	int goldPerHour = (int)(gpGained / ((System.currentTimeMillis() - startTime) / 3600000.0D));
+    	int ashesPerHour = (int)(oreMined / ((System.currentTimeMillis() - startTime) / 3600000.0D));
+    	
+    	if(paintBG != null && runescape_chat_font != null){
+    		
+    		// Draw the mouse under the paint
+    		Point mP = getMouse().getPosition();
+        	g.setPaint(Color.white);
+        	g.drawLine(mP.x - 1, 0, mP.x - 1, 500); // Above X
+        	g.drawLine(mP.x + 1, 0, mP.x + 1, 500); // Below X
+        	g.drawLine(0, mP.y - 1, 800, mP.y - 1); // Left Y
+        	g.drawLine(0, mP.y + 1, 800, mP.y + 1); // Right Y
+        	g.setPaint(Color.black);
+        	g.drawLine(mP.x, 0, mP.x, 500); // At X
+        	g.drawLine(0, mP.y, 800, mP.y); // At Y
+    		
+        	g.setFont(runescape_chat_font);
+            g.drawImage(paintBG, null, 1, 338);
+            g.setPaint(Color.blue);
+        	g.drawString("Venetox's Iron Miner", 195 ,360);
+        	g.setPaint(Color.black);
+        	g.drawString("Time Running: " + ft(runTime), 150, 375);
+        	g.drawString("Ore Mined: " + oreMined + ".", 150, 390);
+        	g.drawString("Ore/h: " + ashesPerHour, 150, 405);
+        	g.drawString("Ore Value: " + oreValue, 150, 420);
+        	g.drawString("Gold/h: " + goldPerHour, 150, 435);
+        	g.drawString("Mining Level: " + getSkills().getDynamic(Skill.MINING), 150, 450);
+        	g.drawString("Status: " + readableStatus + ".", 150, 465);
+        }
+    	
+    }
+    
+    // Formats the time provided into DAYS:HOURS:MINUTES:SECONDS or HOURS:MINUTES:SECONDS depending on length of time.
+    // Found on forum in one of the paint tutorial threads.
+    private String ft(long duration) 
+   	{
+   		String res = "";
+   		long days = TimeUnit.MILLISECONDS.toDays(duration);
+   		long hours = TimeUnit.MILLISECONDS.toHours(duration)
+   		- TimeUnit.DAYS.toHours(TimeUnit.MILLISECONDS.toDays(duration));
+   		long minutes = TimeUnit.MILLISECONDS.toMinutes(duration)
+   		- TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS
+   		.toHours(duration));
+   		long seconds = TimeUnit.MILLISECONDS.toSeconds(duration)
+   		- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS
+   		.toMinutes(duration));
+   		if (days == 0) {
+   		res = (String.format("%02d", hours) + ":" + String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
+   		} else {
+   		res = (String.format("%02d", days) + ":" + String.format("%02d", hours) + ":" + String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
+   		}
+   		return res;
+   	}
+
+    // Called by the GUI to do things that must be done before script can function but rely on the settings.
+	public void startScript() {
+		startTime = System.currentTimeMillis();
+    	oreValue = Exchange.getPrice(oreItemID);
+    	monitor = new InventoryMonitor(this) {
+            @Override
+            public void onChange() {
+                for (FakeItem i : getChanges()) {
+                    if(i.id == oreItemID)
+                    	oreMined++;
+                }
+                update();
+            }
+        };
+    	
+    	try
+    	{
+        	paintBG = ImageIO.read(Main.class.getResourceAsStream("/resources/paint_background.png"));
+        	runescape_chat_font = Font.createFont(Font.TRUETYPE_FONT, Main.class.getResourceAsStream("/resources/runescape_chat.ttf"));
+            runescape_chat_font = runescape_chat_font.deriveFont(16.0f);
+        }
+    	catch(IOException | FontFormatException ex)
+    	{
+            log(ex);
+        }
+    	
+    	doneGUI = true;
+        gui.setVisible(false);
+		
+	}
+
+
+}

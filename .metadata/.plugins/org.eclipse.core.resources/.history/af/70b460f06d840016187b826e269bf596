@@ -1,0 +1,155 @@
+import org.osbot.rs07.api.map.Area;
+import org.osbot.rs07.api.map.Position;
+import org.osbot.rs07.script.Script;
+import org.osbot.rs07.script.ScriptManifest;
+import java.awt.*;
+ 
+ 
+@ScriptManifest(name = "NomNomChocolateDust", author = "Plague Doctor", version = 1.0, info = "Turns Chocolate bars into Chocolate dust.", logo = "IMGURLINKTOLOGO(NOTNEEDED)")
+public class Main extends Script { 
+	private Area varrockWestBank = new Area(3180, 3447, 3190, 3433); // Creates varrockWestBank location.
+	
+ 
+    @Override
+    public void onStart() {
+        // This gets executed when the script first starts.
+    	
+    	
+
+
+    }
+    
+    private enum State {
+		BANK_INVENTORY, WAIT, WALK_TO_BANK, GRIND, WITHDRAW_KNIFE, WITHDRAW_CHOCOLATE // Declares the different states of the program.
+	};
+
+	private State getState() {		
+		if(myPlayer().isMoving() && myPlayer().isAnimating()) // If player is moving or animating, the program will 'WAIT'.
+		{ 
+			return State.WAIT;
+		}
+		if(!inventory.contains(946)) // If inventory does not contain a knife, it will 'WITHDRAW_KNIFE'.
+	    {
+	    	return State.WITHDRAW_KNIFE;
+	    }
+		if(inventory.onlyContains(946)) // If inventory contains only a knife, it will 'WITHDRAW_CHOCOLATE'.
+	    {
+	        return State.WITHDRAW_CHOCOLATE;
+	    }
+		if(inventory.contains(1973)) // If inventory contains any Chocolate bars, it will 'GRIND'.
+	    {
+	        return State.GRIND;
+	    }
+	    if(inventory.onlyContains(946, 1975)) // If inventory only contains a Knife and Chocolate dust it will 'BANK_INVENTORY'.
+	    {
+	        return State.BANK_INVENTORY;
+	    }	    	    
+	    else 
+	    {
+	        return State.WALK_TO_BANK; // If no other action is possible it will 'WALK_TO_BANK'.
+	    }
+	} 
+    
+ 
+    @Override
+    public int onLoop() throws InterruptedException {    		
+    	switch  (getState()) {
+    	case GRIND: 
+			if(getBank().isOpen()) // If the bank is open, this closes it.
+    		{
+    			getBank().close();      			
+    		}
+			else if(inventory.contains(1973)) // If the inventory contains one or more Chocolate bars it will use the Knife on the Chocolate bars.
+        	{
+				this.inventory.interact(this.inventory.getSlot("Knife"), "Use"); // Selects Use on the Knife.
+            	
+            	sleep(random(400,600)); // Waits between 0.4 and 0.6 seconds.
+            	            	
+            	this.inventory.interact(this.inventory.getSlot("Chocolate bar"), "Use");    // Selects Use on the Chocolate bar.        	      	
+        	}
+    		
+    		break;
+    		
+    	case WAIT:
+    		return 700;    		// Waits 0.7 seconds before moving onto the next action
+    		
+    	case BANK_INVENTORY: // Opens a nearby bank and deposits everything in the inventory except the knife.
+    		if(!getBank().isOpen())
+    		{
+    			getBank().open();
+    		}
+    		
+    		getBank().depositAllExcept(946);
+    		
+    		
+    		
+    		break;
+    	case WALK_TO_BANK:
+    		if(!varrockWestBank.contains(myPlayer())) // Checks if the player is already in the Varrock west bank.
+    		{
+    			Position varrockWBank = new Position(3185, 3437, 0); // IF the player is not in the Varrock west bank they will walk there using WebWalking.
+        		getWalking().webWalk(varrockWBank);
+    		}
+    		
+    		break;
+    	
+    	case WITHDRAW_KNIFE:
+    		if(!inventory.contains(946)) // If the inventory does not contain a knife this will withdraw one.
+    		{
+    			if(!getBank().isOpen()) // Checks if the bank is open, if its not it opens it.
+        		{
+        			getBank().open();
+        		}
+    			else
+    			{
+    				getBank().withdraw(946, 1); // Withdraws a knife.
+    				
+    			}
+    		}
+    		
+    		break;
+    	
+    	case WITHDRAW_CHOCOLATE:
+    		if(inventory.onlyContains(946)) // Checks if the inventory only has a knife in it.
+    		{
+    			if(!getBank().isOpen())
+        		{
+        			getBank().open();
+        		}        		
+        		getBank().withdraw(1973, 27);     // Withdraws 27 Chocolate bars.   			
+        		
+    		}
+    			
+    		break;
+    		
+    		
+    	
+    	}
+    	
+    	 	
+ 
+        return 800; //The amount of time in milliseconds before the loop is called again
+    }
+    
+    @Override
+    public void onExit() {
+        // This will get executed when the user hits the stop script button.
+ 
+ 
+    }   
+ 
+    @Override
+    public void onPaint(Graphics2D g) {  // Adds a graphic around the mouse to make it more obvious what is happening/where the mouse is.
+		Point mP = getMouse().getPosition();
+        g.setPaint(Color.white);
+        g.drawLine(mP.x - 1, 0, mP.x - 1, 500); // Above X
+        g.drawLine(mP.x + 1, 0, mP.x + 1, 500); // Below X
+        g.drawLine(0, mP.y - 1, 800, mP.y - 1); // Left Y
+        g.drawLine(0, mP.y + 1, 800, mP.y + 1); // Right Y
+        g.setPaint(Color.black);
+        g.drawLine(mP.x, 0, mP.x, 500); // At X
+        g.drawLine(0, mP.y, 800, mP.y); // At Y 
+    }
+ 
+ 
+}

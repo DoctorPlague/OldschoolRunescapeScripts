@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="org.osbot.rs07.api.map.Area"/>
+<fullyQualifiedTypeName name="org.osbot.rs07.api.map.Position"/>
+<fullyQualifiedTypeName name="org.osbot.rs07.api.ui.RS2Widget"/>
+<fullyQualifiedTypeName name="org.osbot.rs07.input.mouse.RectangleDestination"/>
+<fullyQualifiedTypeName name="org.osbot.rs07.utility.ConditionalSleep"/>
+<fullyQualifiedTypeName name="org.osbot.rs07.script.MethodProvider"/>
+<fullyQualifiedTypeName name="org.osbot.rs07.api.Mouse"/>
+<fullyQualifiedTypeName name="org.osbot.rs07.api.Mouse.CrossHairColor"/>
+<fullyQualifiedTypeName name="org.osbot.rs07.script.Script"/>
+<fullyQualifiedTypeName name="Main.State"/>
+</qualifiedTypeNameHistroy>
