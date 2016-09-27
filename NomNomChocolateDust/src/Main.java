@@ -47,8 +47,11 @@ public class Main extends Script {
     		}
 			else // We already know the inventory contains a knife and chocolate bars, because grind only gets sent back to onLoop if we have knife and chocolate bars in our inventory.
         	{
-				inventory.getItem("Knife").interact("Use"); // You can use this instead of that other code, that other code also works but this is more efficient for the API.
-				inventory.getItem("Chocolate bar").interact("Use");
+				if(inventory.getItem("Knife") != null && inventory.getItem("Chocolate bar") != null)
+				{
+					inventory.getItem("Knife").interact("Use"); // You can use this instead of that other code, that other code also works but this is more efficient for the API.
+					inventory.getItem("Chocolate bar").interact("Use");
+				}
         	}
     		
     		break;
