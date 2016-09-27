@@ -32,7 +32,7 @@ public class Main extends Script {
 			}
 			else
 			{
-				return State.WALK_TO_BANK;
+				return State.WALK_TO_BANK; 
 			}
 		}
 		if(inventory.contains("Chocolate bar")) // If inventory contains any Chocolate bars, it will 'GRIND'.
@@ -87,7 +87,7 @@ public class Main extends Script {
 			// You already had the west banks location defined at the top of the page, dont define the same thing twice!!!
         		getWalking().webWalk(varrockWestBank);
     		}
-    		
+    		// Should add a case to make the user drop his whole bank at GE on world 1
     		break;  		
     		
     	
