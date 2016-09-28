@@ -7,6 +7,7 @@ import org.osbot.rs07.script.ScriptManifest;
 import org.osbot.rs07.utility.ConditionalSleep;
 
 import java.awt.*;
+import java.awt.geom.Arc2D;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
 
@@ -210,16 +211,13 @@ public class Main extends Script {
     	int ammoProfitPerHour = (int)(profit / ((System.currentTimeMillis() - startTime) / 3600000.0D));
         int ammoPerHour = (int)(ammoSmelted / ((System.currentTimeMillis() - startTime) / 3600000.0D));
     	
-    	Point mP = getMouse().getPosition();
-        g.setPaint(Color.white);
-        g.drawLine(mP.x - 1, 0, mP.x - 1, 500); // Above X
-        g.drawLine(mP.x + 1, 0, mP.x + 1, 500); // Below X
-        g.drawLine(0, mP.y - 1, 800, mP.y - 1); // Left Y
-        g.drawLine(0, mP.y + 1, 800, mP.y + 1); // Right Y
-        g.setPaint(Color.black);
-        g.drawLine(mP.x, 0, mP.x, 500); // At X
-        g.drawLine(0, mP.y, 800, mP.y); // At Y
-        
+        Point mP = getMouse().getPosition();
+        g.setPaint(Color.cyan);
+        // Draw a line from top of screen (0), to bottom (500), with mouse x coordinate
+        g.drawLine(mP.x, 0, mP.x, 500);
+        // Draw a line from left of screen (0), to right (800), with mouse y coordinate
+        g.drawLine(0, mP.y, 800, mP.y);        
+    	
         float opacity = 1f;
  
         Rectangle paintRect = new Rectangle(1, 338, 518, 140);
