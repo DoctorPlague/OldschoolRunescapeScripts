@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
  
-@ScriptManifest(author = "Plague Doctor", info = "Smelts cannonballs and banks them", name = "Cannonball Smelter", version = 0, logo = "")
+@ScriptManifest(author = "Plague Doctor", info = "Smelts cannonballs and banks them", name = "Cannonball Smelter", version = 0, logo = "http://i.imgur.com/LMPJVXx.png")
 public class Main extends Script {
 	
 	private Furnace selectedFurnace;	
@@ -57,8 +57,7 @@ public class Main extends Script {
     	if(timeSinceLastAnimating > 4000) // If its been more than 4 seconds.
     		isSmithing = false;
     	if(!hasRequiredItems()) // If our inventory is full, dont do anything, bank instead
-    	{
-    		//log("We are out of ore, or our ring of forging has disintegrated, or need to bank");
+    	{    		
     		isSmithing = false;
     		return Action.BANK;   		
     	}
@@ -127,8 +126,8 @@ public class Main extends Script {
 				{
 					status = "Selecting Make All";
 					smithWidget.interact("Make All");
-					status = "Smelting Cannonballs";
 					lastTimeNotAnimating = System.currentTimeMillis();
+					status = "Smelting Cannonballs";					
 					isSmithing = true;
 					getMouse().moveOutsideScreen();
 				}
@@ -151,7 +150,8 @@ public class Main extends Script {
 						if(furnace != null)
 						{
 							status = "Using Steel bar on Furnace";
-							furnace.interact("Use");							
+							furnace.interact("Use");
+							lastTimeNotAnimating = System.currentTimeMillis();
 						}
 					}
 				}
@@ -226,16 +226,20 @@ public class Main extends Script {
         {
             opacity = 1f;
         }
+        
+        int offsetX = 140;
+        int offsetY = 403;
+        
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
         g.setFont(runescape_chat_font);
         g.drawImage(paintBG, null, 1, 338);        
         g.setPaint(Color.blue);
-        g.drawString("Plague Doctor's Cannonball Smelter", 145 ,370);
+        g.drawString("Plague Doctor's Cannonball Smelter", 212 ,370);
         g.setPaint(Color.black);
-        g.drawString("Time Running: " + ft(runTime), 110, 425);
-        g.drawString("Cannonballs Smelted: " + ammoSmelted + " Cannonballs/h: " + ammoPerHour, 110, 440);
-        g.drawString("Profit: " + profit + " Profit/h: " + ammoProfitPerHour, 110, 455);
-        g.drawString("Status: " + status + ".", 110, 470);
+        g.drawString("Time Running: " + ft(runTime), offsetX, offsetY);
+        g.drawString("Cannonballs Smelted: " + ammoSmelted + " Cannonballs/h: " + ammoPerHour, offsetX, offsetY + 15);
+        g.drawString("Profit: " + profit + " Profit/h: " + ammoProfitPerHour, offsetX, offsetY + 30);
+        g.drawString("Status: " + status + ".", offsetX, offsetY + 45);
         
     }
     
