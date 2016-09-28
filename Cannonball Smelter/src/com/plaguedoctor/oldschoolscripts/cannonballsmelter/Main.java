@@ -47,7 +47,7 @@ public class Main extends Script {
         catch (Exception e)
         {
             log(e);
-            errorBox("The script failed to load the Paint images. This is often fixed by restarting OSBot. If not, post on forum thread with the error printed to Logger, and be sure to PM me on forum so I know about it.", "Failed to load paint images");
+            errorBox("The script has failed to load paint images.", "Failed to load paint images");
             return;
         }
         cannonballValue = Exchange.getPrice(2);
