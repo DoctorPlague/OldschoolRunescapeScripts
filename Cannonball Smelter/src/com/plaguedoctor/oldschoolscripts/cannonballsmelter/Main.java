@@ -27,6 +27,7 @@ public class Main extends Script {
 	// private boolean botStarted = false;
 	private boolean drawPaint = false;
 	private int cannonballValue = 0;
+	private int steelBarValue = 0;
 	
 	
     @Override
@@ -48,6 +49,7 @@ public class Main extends Script {
             return;
         }
         cannonballValue = Exchange.getPrice(2);
+        steelBarValue = Exchange.getPrice(2353);
         
         
     }
@@ -105,6 +107,10 @@ public class Main extends Script {
 				else
 				{
 					status = "Depositing Cannonballs";
+					if(!inventory.contains("Ammo mould"))
+					{
+						getBank().withdraw("Ammo mould", 1);
+					}
 					getBank().depositAllExcept("Ammo mould");
 					status = "Withdrawing Steel bars";
 					getBank().withdraw("Steel bar", 27);
@@ -200,7 +206,7 @@ public class Main extends Script {
     		return;
     	long runTime = System.currentTimeMillis() - startTime; // mili seconds been running
     	
-    	int profit = ammoSmelted * cannonballValue;
+    	int profit = ammoSmelted *( cannonballValue - (steelBarValue / 4));
     	int ammoProfitPerHour = (int)(profit / ((System.currentTimeMillis() - startTime) / 3600000.0D));
         int ammoPerHour = (int)(ammoSmelted / ((System.currentTimeMillis() - startTime) / 3600000.0D));
     	
