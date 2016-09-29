@@ -53,9 +53,12 @@ public class Main extends Script {
 					{
 						if(i.getName().contains("Grimy"))
 						{
-							int slot = getInventory().getSlot(i);
-							getMouse().move(getInventory().getMouseDestination(slot));
-							getMouse().click(false); // This will do an inventory in like 3 seconds. It will only click on items that are grimy toad flax.
+							int slot = getInventory().getSlot(i); // Gets the slot the item is in
+							MouseDestination dest = getInventory().getMouseDestination(slot) // Gets the mouse destination for this slot
+							Rectangle rect = dest.getBoundingBox(); // Gets the rectangle that indicates all the points that can be click and will be inside the items hitbox.
+							double x = ThreadLocalRandom.current().nextDouble(rect.getMinX(), rect.getMaxX()); // Gets a random x inside the rectangle.
+							double y = ThreadLocalRandom.current().nextDouble(rect.getMinY(), rect.getMaxY()); // Gets a random x inside the rectangle.
+							getBot().getMouseEventHandler().generateBotMouseEvent(MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0, (int)x, (int)y, 0, false, 0, true); // Clicks at this point by sending a mouse event. This causes it to instantly teleport and click there.
 							sleep(random(75,175));
 						}
 					}
