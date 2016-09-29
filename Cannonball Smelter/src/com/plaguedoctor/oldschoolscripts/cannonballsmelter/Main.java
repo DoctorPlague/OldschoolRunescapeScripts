@@ -7,7 +7,7 @@ import org.osbot.rs07.script.ScriptManifest;
 import org.osbot.rs07.utility.ConditionalSleep;
 
 import java.awt.*;
-import java.awt.geom.Arc2D;
+
 import java.awt.image.BufferedImage;
 import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
