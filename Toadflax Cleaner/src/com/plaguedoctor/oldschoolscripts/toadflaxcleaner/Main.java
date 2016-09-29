@@ -49,15 +49,16 @@ public class Main extends Script {
     		}
 			else // We already know the inventory contains a knife and chocolate bars, because grind only gets sent back to onLoop if we have knife and chocolate bars in our inventory.
         	{
-				if(inventory.getItem("Grimy toadflax") != null)
-				{					
-					for(int i = 0; i<28; i++) 
-					{						
-						inventory.interact(i, "Clean");	
-						sleep(random(100,200));
+				for(Item i : getInventory().getItems())
+					{
+						if(i.getName().contains("Grimy"))
+						{
+							int slot = getInventory().getSlot(i);
+							getMouse().move(getInventory().getMouseDestination(slot));
+							getMouse().click(false); // This will do an inventory in like 3 seconds. It will only click on items that are grimy toad flax.
+							sleep(random(75,175));
+						}
 					}
-					sleep(200);
-				}
         	}
     		
     		break;
