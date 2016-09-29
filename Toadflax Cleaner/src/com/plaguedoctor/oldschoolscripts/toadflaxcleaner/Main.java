@@ -8,7 +8,7 @@ import java.awt.*;
 import java.util.LinkedList; 
 
  
-@ScriptManifest(name = "Grimy Toadflax Cleaner", author = "Plague Doctor", version = 1.0, info = "Cleans Grimy Toadflax.", logo = "http://i.imgur.com/OmO9g77.png")
+@ScriptManifest(name = "Grimy Toadflax Cleaner", author = "Plague Doctor", version = 1.0, info = "Cleans Toadflax.", logo = "http://i.imgur.com/DAL7Mii.png")
 public class Main extends Script { 
 
 	
