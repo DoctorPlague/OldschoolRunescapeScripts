@@ -18,6 +18,8 @@ public class Main extends Script {
 	private long lastTimeNotAnimating;
 	private int selectionBias = random(15,85);
 	private boolean isSmithing;
+	private String potion = "Harralander potion (unf)";
+	private String ingredient = "Goat horn dust";
 	
     @Override
     public void onStart() {
@@ -49,7 +51,7 @@ public class Main extends Script {
     		lastTimeNotAnimating = System.currentTimeMillis();
     		return State.WAIT;
     	}
-		if(!inventory.contains("Harralander potion (unf)") || !inventory.contains("Goat horn dust"))
+		if(!inventory.contains(potion) || !inventory.contains(ingredient))
 		{
 			isSmithing = false;
 			return State.BANK_INVENTORY;					
@@ -70,7 +72,7 @@ public class Main extends Script {
     	log(state);
     	switch  (state) {
     	case CLEAN:     		
-			if(inventory.getItem("Harralander potion (unf)") != null && inventory.getItem("Goat horn dust") != null) // We already know the inventory contains a knife and chocolate bars, because grind only gets sent back to onLoop if we have knife and chocolate bars in our inventory.
+			if(inventory.getItem(potion) != null && inventory.getItem(ingredient) != null) // We already know the inventory contains a knife and chocolate bars, because grind only gets sent back to onLoop if we have knife and chocolate bars in our inventory.
         	{
 				RS2Widget smithWidget = getWidgets().get(309, 4);
 				if(smithWidget != null)
@@ -82,10 +84,10 @@ public class Main extends Script {
 					getMouse().moveOutsideScreen();
 					
 				}
-				else if(inventory.contains("Harralander potion (unf)") || inventory.contains("Goat horn dust"))
+				else if(inventory.contains(potion) || inventory.contains(ingredient))
 				{
-					int harrToUse = random(0, (int)inventory.getAmount("Harralander potion (unf)"));
-					int goatToUse = random(0, (int)inventory.getAmount("Goat horn dust"));
+					int harrToUse = random(0, (int)inventory.getAmount(potion));
+					int goatToUse = random(0, (int)inventory.getAmount(ingredient));
 					int harrSlot = 99;
 					int goatSlot = 99;
 					
@@ -95,7 +97,7 @@ public class Main extends Script {
 						Item item = inventory.getItemInSlot(i);
 						if(item != null)
 						{
-							if(harrSlot == 99 &&item.getName().equals("Harralander potion (unf)"))
+							if(harrSlot == 99 &&item.getName().equals(potion))
 							{
 								if(harrI == harrToUse)
 								{
@@ -103,7 +105,7 @@ public class Main extends Script {
 								}
 								harrI++;
 							}
-							if(goatSlot == 99 && item.getName().equals("Goat horn dust"))
+							if(goatSlot == 99 && item.getName().equals(ingredient))
 							{
 								if(goatI == goatToUse)
 								{
@@ -180,30 +182,30 @@ public class Main extends Script {
 						break;
 				}
 				
-				getBank().withdraw("Harralander potion (unf)", 14);
+				getBank().withdraw(potion, 14);
 				new ConditionalSleep(3000) { // Same deal, shouldn't take longer than 3s
 					@Override
 					public boolean condition() throws InterruptedException {
 
-						return (getInventory().contains("Harralander potion (unf)"));
+						return (getInventory().contains(potion));
 					}
 				}.sleep();
-				if(!getInventory().contains("Harralander potion (unf)"))
+				if(!getInventory().contains(potion))
 					// If the sleep timed out (got to three seconds), then break cos it means something went wrong.
 					// This will cause onLoop to be called again and it will happen again.
 					break;
 			
 			
 
-				getBank().withdraw("Goat horn dust", 14);
+				getBank().withdraw(ingredient, 14);
 				new ConditionalSleep(10000) {
 					@Override
 					public boolean condition() throws InterruptedException {
 
-						return (getInventory().contains("Goat horn dust")); 
+						return (getInventory().contains(ingredient)); 
 					}
 				}.sleep();
-				if(!getInventory().contains("Goat horn dust"))
+				if(!getInventory().contains(ingredient))
 					// If the sleep timed out (got to three seconds), then break cos it means something went wrong.
 					// This will cause onLoop to be called again and it will happen again.
 					break;
