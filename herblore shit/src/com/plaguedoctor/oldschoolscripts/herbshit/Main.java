@@ -5,7 +5,15 @@ import org.osbot.rs07.api.ui.RS2Widget;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 import org.osbot.rs07.utility.ConditionalSleep;
+<<<<<<< HEAD
 import java.awt.*; 
+=======
+
+import com.plaguedoctor.oldschoolscripts.cannonballsmelter.Action;
+
+import java.awt.*;
+import java.util.LinkedList; 
+>>>>>>> parent of 70134f3... +error fix
 
  
 @ScriptManifest(name = "HerbloreIsHardToCode", author = "Plague Doctor", version = 1.0, info = "herblore.", logo = "http://i.imgur.com/OmO9g77.png")
@@ -64,6 +72,7 @@ public class Main extends Script {
     		{
     			getBank().close();      			
     		}
+<<<<<<< HEAD
 			RS2Widget herbloreWidget = getWidgets().get(309, 4);
 			if(herbloreWidget != null)
 			{				
@@ -75,6 +84,19 @@ public class Main extends Script {
 			else
 			{
 				if(getInventory().getItem("Harralander potion (unf)") != null && (getInventory().getItem("Goat horn dust")) != null)
+=======
+			
+			if(inventory.getItem("Harralander potion (unf)") != null && inventory.getItem("Goat horn dust") != null) // We already know the inventory contains a knife and chocolate bars, because grind only gets sent back to onLoop if we have knife and chocolate bars in our inventory.
+        	{
+				RS2Widget smithWidget = getWidgets().get(309, 4);
+				if(smithWidget != null)
+				{
+					smithWidget.interact("Make All");
+					lastTimeNotAnimating = System.currentTimeMillis();		
+					isSmithing = true;
+				}
+				else
+>>>>>>> parent of 70134f3... +error fix
 				{
 					new ConditionalSleep(3000) {
 
