@@ -4,9 +4,6 @@ import org.osbot.rs07.api.ui.RS2Widget;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 import org.osbot.rs07.utility.ConditionalSleep;
-
-
-
 import java.awt.*;
 import java.util.LinkedList; 
 
@@ -72,7 +69,7 @@ public class Main extends Script {
     		{
     			getBank().close();      			
     		}
-			if(inventory.getItem("Harralander potion (unf)") != null && inventory.getItem("Goat horn dust") != null) // We already know the inventory contains a knife and chocolate bars, because grind only gets sent back to onLoop if we have knife and chocolate bars in our inventory.
+			if(hasRequiredItems()) // We already know the inventory contains a knife and chocolate bars, because grind only gets sent back to onLoop if we have knife and chocolate bars in our inventory.
         	{
 				RS2Widget smithWidget = getWidgets().get(309, 4);
 				if(smithWidget != null)
@@ -118,7 +115,8 @@ public class Main extends Script {
 
 					public boolean condition() throws InterruptedException {
 						if(!hasRequiredItems())
-						{								
+						{	
+							
 							getBank().depositAll();
 							getBank().withdraw("Harralander potion (unf)", 14);
 							getBank().withdraw("Goat horn dust", 14);
