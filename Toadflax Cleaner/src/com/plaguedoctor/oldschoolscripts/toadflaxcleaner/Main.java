@@ -1,11 +1,15 @@
 package com.plaguedoctor.oldschoolscripts.toadflaxcleaner;
 
+import org.osbot.rs07.api.model.Item;
 import org.osbot.rs07.input.mouse.InventorySlotDestination;
+import org.osbot.rs07.input.mouse.MouseDestination;
+import org.osbot.rs07.input.mouse.MouseEvent;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 import org.osbot.rs07.utility.ConditionalSleep;
 import java.awt.*;
-import java.util.LinkedList; 
+import java.util.LinkedList;
+import java.util.concurrent.ThreadLocalRandom; 
 
  
 @ScriptManifest(name = "Grimy Toadflax Cleaner", author = "Plague Doctor", version = 1.0, info = "Cleans Toadflax.", logo = "http://i.imgur.com/DAL7Mii.png")
@@ -54,7 +58,7 @@ public class Main extends Script {
 						if(i.getName().contains("Grimy"))
 						{
 							int slot = getInventory().getSlot(i); // Gets the slot the item is in
-							MouseDestination dest = getInventory().getMouseDestination(slot) // Gets the mouse destination for this slot
+							MouseDestination dest = getInventory().getMouseDestination(slot); // Gets the mouse destination for this slot
 							Rectangle rect = dest.getBoundingBox(); // Gets the rectangle that indicates all the points that can be click and will be inside the items hitbox.
 							double x = ThreadLocalRandom.current().nextDouble(rect.getMinX(), rect.getMaxX()); // Gets a random x inside the rectangle.
 							double y = ThreadLocalRandom.current().nextDouble(rect.getMinY(), rect.getMaxY()); // Gets a random x inside the rectangle.

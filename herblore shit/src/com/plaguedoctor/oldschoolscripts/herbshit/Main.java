@@ -1,18 +1,19 @@
 package com.plaguedoctor.oldschoolscripts.herbshit;
 
+import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.ui.RS2Widget;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 import org.osbot.rs07.utility.ConditionalSleep;
-import java.awt.*;
-import java.util.LinkedList; 
+import java.awt.*; 
 
  
-@ScriptManifest(name = "herbshit", author = "Plague Doctor", version = 1.0, info = "Cleans Toadflax.", logo = "http://i.imgur.com/DAL7Mii.png")
+@ScriptManifest(name = "HerbloreIsHardToCode", author = "Plague Doctor", version = 1.0, info = "herblore.", logo = "http://i.imgur.com/OmO9g77.png")
 public class Main extends Script { 
+	
+	 private boolean isHerbing;
+	 private long lastTimeNotAnimating;
 
-	private long lastTimeNotAnimating;
-	private boolean isSmithing;
 	
     @Override
     public void onStart() {
@@ -20,76 +21,80 @@ public class Main extends Script {
     }
     
     private enum State {
-		BANK_INVENTORY, WAIT, CLEAN, // Declares the different states of the program.
+		BANK_INVENTORY, WAIT, GRIND, // Declares the different states of the program.
 	};
 
 	private State getState()
 	{
 		long timeSinceLastAnimating = System.currentTimeMillis() - lastTimeNotAnimating; // This is the time in milliseconds since last animation.
     	if(timeSinceLastAnimating > 4000) // If its been more than 4 seconds.
-    		isSmithing = false;
-    	RS2Widget smithingLevelWidget = getWidgets().get(233, 0);
-
-    	if(smithingLevelWidget != null && smithingLevelWidget.isVisible() && smithingLevelWidget.getMessage().contains("Herblore"))
-    		return State.CLEAN;
+    		isHerbing = false;
     	if(myPlayer().isMoving() || myPlayer().isAnimating())
     	{
     		lastTimeNotAnimating = System.currentTimeMillis();
     		return State.WAIT;
     	}
-    	if(!hasRequiredItems())
+		if(!hasRequiredItems())
 		{
-			isSmithing = false;
+			isHerbing = false;
 			return State.BANK_INVENTORY;					
-		}
-		if(isSmithing)
+		}		
+		if(isHerbing)
     	{
     		return State.WAIT;
     	}
-		
-		return State.CLEAN;
-		
+		return State.GRIND;
 	}
-	
+    
 	 private boolean hasRequiredItems() {
-	    	if(!getInventory().contains("Harralander potions (unf)") || !getInventory().contains("Goat horn dust"))
+	    	if(!getInventory().contains("Harralander potion (unf)") || !getInventory().contains("Goat horn dust"))
 	    	{
 	    		return false;
 	    	}
 	  
 			return true;
 		}
-    
- 
+	
+	
     @Override
     public int onLoop() throws InterruptedException {    		
     	switch  (getState()) {
-    	case CLEAN: 
-			if(getBank().isOpen())// If the bank is open, this closes it.
+    	case GRIND: 
+			if(getBank().isOpen()) // If the bank is open, this closes it.
     		{
     			getBank().close();      			
     		}
-			if(hasRequiredItems()) // We already know the inventory contains a knife and chocolate bars, because grind only gets sent back to onLoop if we have knife and chocolate bars in our inventory.
-        	{
-				RS2Widget smithWidget = getWidgets().get(309, 4);
-				if(smithWidget != null)
-				{
-					smithWidget.interact("Make All");
-					lastTimeNotAnimating = System.currentTimeMillis();		
-					isSmithing = true;
-					sleep(1000);
-				}
-				if(hasRequiredItems())
-				{
-					inventory.getItem("Harralander potion (unf)").interact("Use"); // You can use this instead of that other code, that other code also works but this is more efficient for the API.
-					inventory.getItem("Goat horn dust").interact("Use");	
-				}
-				
-				
-				
+			RS2Widget herbloreWidget = getWidgets().get(309, 4);
+			if(herbloreWidget != null)
+			{				
+				herbloreWidget.interact("Make All");
+				lastTimeNotAnimating = System.currentTimeMillis();								
+				isHerbing = true;
 				getMouse().moveOutsideScreen();
-				
-        	}
+			}
+			else
+			{
+				if(getInventory().getItem("Harralander potion (unf)") != null && (getInventory().getItem("Goat horn dust")) != null)
+				{
+					new ConditionalSleep(3000) {
+
+						@Override
+						public boolean condition() throws InterruptedException {							
+							getInventory().getItem("Harralander potion (unf)").interact("Use");								
+							return getInventory().isItemSelected();
+						}
+						
+					}.sleep();				
+					
+					if(getInventory().getItem("Goat horn dust") != null)
+					{
+						getInventory().getItem("Goat horn dust").interact("Use");
+						lastTimeNotAnimating = System.currentTimeMillis();						
+					}
+					
+				}
+			}	
+		      
     		
     		break;
     		
@@ -99,86 +104,44 @@ public class Main extends Script {
     	case BANK_INVENTORY: // Opens a nearby bank and deposits everything in the inventory except the knife.
     		if ((map.isWithinRange(objects.closest("Bank booth"), 10) || map.isWithinRange(objects.closest("Grand exchange booth"), 10) )&& !bank.isOpen())  // Checks if a bank booth, or grand exchange booth is within range and the bank isnt open
 			{
-				bank.open(); //attempts to open the bank
-				new ConditionalSleep(10000) { //how many ms to wait for condition
-					@Override
-
-					public boolean condition() throws InterruptedException {
-						return bank.isOpen(); //ends conditional sleep if bank is open
+    			if(!getBank().isOpen())
+				{					
+					getBank().open();
+				}
+				else
+				{					
+					if(!inventory.contains("Harralander potion (unf)"))
+					{
+						getBank().withdraw("Harralander potion (unf)", 14);
 					}
-				}.sleep();
+					getBank().depositAllExcept("Harralander potion (unf)");					
+					getBank().withdraw("Goat horn dust", 14);
+				}				
 			}
-			else
-			{
-				new ConditionalSleep(10000) { //how many ms to wait for condition
-					@Override
-
-					public boolean condition() throws InterruptedException {
-						if(!hasRequiredItems())
-						{	
-							
-							getBank().depositAll();
-							getBank().withdraw("Harralander potion (unf)", 14);
-							getBank().withdraw("Goat horn dust", 14);
-							
-						}						
-						getBank().close();  
-						
-						return (hasRequiredItems()); // If inventory contains knife and inventory contains chocolate bar it will return true. and end sleep
-					}
-				}.sleep();
-				  
-			}
-			
-					
-		
     		break; 
-    	}
-    	 	
- 
-    	return random(600, 800); //The amount of time in milliseconds before the loop is called again
+    	} 
+    		
+    	return random(600, 800);
     }
     
     @Override
     public void onExit() {
         // This will get executed when the user hits the stop script button.
  
-    }
-    
-    LinkedList<MousePathPoint> mousePath = new LinkedList<MousePathPoint>();
-    public class MousePathPoint extends Point {
-
-        private long finishTime;
-        private double lastingTime;
-
-        public MousePathPoint(int x, int y, int lastingTime) {
-            super(x, y);
-            this.lastingTime = lastingTime;
-            finishTime = System.currentTimeMillis() + lastingTime;
-        }
-
-        public boolean isUp() {
-            return System.currentTimeMillis() > finishTime;
-        }
-    }
+    }          
  
     @Override
     public void onPaint(Graphics2D g) {  
-    	g.setPaint(Color.cyan);
-    	
-    	while (!mousePath.isEmpty() && mousePath.peek().isUp())
-            mousePath.remove();
-        Point clientCursor = mouse.getPosition();
-        MousePathPoint mpp = new MousePathPoint(clientCursor.x, clientCursor.y, 500);
-        if (mousePath.isEmpty() || !mousePath.getLast().equals(mpp))
-            mousePath.add(mpp);
-        MousePathPoint lastPoint = null;
-        for (MousePathPoint a : mousePath) {
-            if (lastPoint != null) {                
-                g.drawLine(a.x, a.y, lastPoint.x, lastPoint.y);
-            }
-            lastPoint = a;
-        }        
+    	// Adds a graphic around the mouse to make it more obvious what is happening/where the mouse is.
+	Point mP = getMouse().getPosition();
+        g.setPaint(Color.white);
+        g.drawLine(mP.x - 1, 0, mP.x - 1, 500); // Above X
+        g.drawLine(mP.x + 1, 0, mP.x + 1, 500); // Below X
+        g.drawLine(0, mP.y - 1, 800, mP.y - 1); // Left Y
+        g.drawLine(0, mP.y + 1, 800, mP.y + 1); // Right Y
+        g.setPaint(Color.black);
+        g.drawLine(mP.x, 0, mP.x, 500); // At X
+        g.drawLine(0, mP.y, 800, mP.y); // At Y 
     }
  
  
