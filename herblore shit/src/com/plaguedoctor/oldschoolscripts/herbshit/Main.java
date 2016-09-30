@@ -40,7 +40,7 @@ public class Main extends Script {
     		lastTimeNotAnimating = System.currentTimeMillis();
     		return State.WAIT;
     	}
-		if(!inventory.contains("Harralander potion (unf)", "Goat horn dust"))
+    	if(!hasRequiredItems())
 		{
 			isSmithing = false;
 			return State.BANK_INVENTORY;					
@@ -53,6 +53,15 @@ public class Main extends Script {
 		return State.CLEAN;
 		
 	}
+	
+	 private boolean hasRequiredItems() {
+	    	if(!getInventory().contains("Harralander potions (unf)") || !getInventory().contains("Goat horn dust"))
+	    	{
+	    		return false;
+	    	}
+	  
+			return true;
+		}
     
  
     @Override
@@ -71,8 +80,9 @@ public class Main extends Script {
 					smithWidget.interact("Make All");
 					lastTimeNotAnimating = System.currentTimeMillis();		
 					isSmithing = true;
+					sleep(1000);
 				}
-				if(inventory.getItem("Harralander potion (unf)") != null && inventory.getItem("Goat horn dust") != null)
+				if(hasRequiredItems())
 				{
 					inventory.getItem("Harralander potion (unf)").interact("Use"); // You can use this instead of that other code, that other code also works but this is more efficient for the API.
 					inventory.getItem("Goat horn dust").interact("Use");	
@@ -107,17 +117,16 @@ public class Main extends Script {
 					@Override
 
 					public boolean condition() throws InterruptedException {
-						if(!inventory.contains("Harralander potion (unf)"))
-						{	
-							if(!inventory.onlyContains("Harralander potion (unf)", "Goat horn dust"))
-								getBank().depositAll();
+						if(!hasRequiredItems())
+						{								
+							getBank().depositAll();
 							getBank().withdraw("Harralander potion (unf)", 14);
 							getBank().withdraw("Goat horn dust", 14);
 							
 						}						
 						getBank().close();  
 						
-						return (getInventory().contains("Harralander potion (unf)")); // If inventory contains knife and inventory contains chocolate bar it will return true. and end sleep
+						return (hasRequiredItems()); // If inventory contains knife and inventory contains chocolate bar it will return true. and end sleep
 					}
 				}.sleep();
 				  
