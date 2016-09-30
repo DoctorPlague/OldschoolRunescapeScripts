@@ -59,11 +59,12 @@ public class Main extends Script {
     public int onLoop() throws InterruptedException {    		
     	switch  (getState()) {
     	case CLEAN: 
-			if(getBank().isOpen()) // If the bank is open, this closes it.
+			if(getBank().isOpen())// If the bank is open, this closes it.
     		{
     			getBank().close();      			
     		}
-			else if(inventory.getItem("Harralander potion (unf)") != null && inventory.getItem("Goat horn dust") != null) // We already know the inventory contains a knife and chocolate bars, because grind only gets sent back to onLoop if we have knife and chocolate bars in our inventory.
+			
+			if(inventory.getItem("Harralander potion (unf)") != null && inventory.getItem("Goat horn dust") != null) // We already know the inventory contains a knife and chocolate bars, because grind only gets sent back to onLoop if we have knife and chocolate bars in our inventory.
         	{
 				RS2Widget smithWidget = getWidgets().get(309, 4);
 				if(smithWidget != null)
