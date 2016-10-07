@@ -1,5 +1,6 @@
-import org.osbot.rs07.api.map.Area;
 import org.osbot.rs07.api.map.Position;
+import org.osbot.rs07.api.model.Entity;
+import org.osbot.rs07.api.ui.RS2Widget;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
  
@@ -7,10 +8,12 @@ import org.osbot.rs07.script.ScriptManifest;
 import java.awt.*;
  
  
-@ScriptManifest(name = "Walk to GE", author = "YOURNAME", version = 1.0, info = "INFO(NOTNEEDED)", logo = "IMGURLINKTOLOGO(NOTNEEDED)")
-public class Main extends Script {
+@ScriptManifest(name = "test", author = "YOURNAME", version = 1.0, info = "INFO(NOTNEEDED)", logo = "IMGURLINKTOLOGO(NOTNEEDED)")
+public class main extends Script {
 	
-	private	Area varrockArea = new Area(3125, 3520, 3311, 3331);
+	private Position spinwheel = new Position(3208, 3213, 1);
+	RS2Widget bowStringWidget = getWidgets().get(459, 89);
+	Entity wheel = objects.closest("Spinning wheel"); 
  
  
  
@@ -36,12 +39,8 @@ public class Main extends Script {
     	if(myPlayer().isMoving() && myPlayer().isAnimating())
     		return 700;
         // Called every loop, the time between this call of loop and the next one depends on what you return
+    	getWalking().webWalk(spinwheel);
     	
-    	if(!varrockArea.contains(myPlayer()))
-    	{
-    		Position GE = new Position(3165, 3485, 0);
-    		getWalking().webWalk(GE);
-    	}
  
         return 700; //The amount of time in milliseconds before the loop is called again
     }

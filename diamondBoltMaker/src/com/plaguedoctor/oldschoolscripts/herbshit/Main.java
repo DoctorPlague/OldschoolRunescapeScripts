@@ -1,6 +1,5 @@
 package com.plaguedoctor.oldschoolscripts.herbshit;
 
-import org.osbot.rs07.api.model.Item;
 import org.osbot.rs07.api.ui.RS2Widget;
 import org.osbot.rs07.api.ui.Tab;
 import org.osbot.rs07.script.Script;
@@ -13,14 +12,14 @@ import java.awt.*;
 import java.util.LinkedList; 
 
  
-@ScriptManifest(name = "potmaker", author = "Plague Doctor", version = 1.0, info = "Cleans Toadflax.", logo = "http://i.imgur.com/DAL7Mii.png")
+@ScriptManifest(name = "Diamond bolt maker", author = "Plague Doctor", version = 1.0, info = "Cleans Toadflax.", logo = "http://i.imgur.com/DAL7Mii.png")
 public class Main extends Script { 
 
 	private long lastTimeNotAnimating;
 	private int selectionBias = random(15,85);
 	private boolean isSmithing;
-	private String potion = "Vial of water";
-	private String ingredient = "Snapdragon";
+	private String potion = "Diamond bolt tips";
+	private String ingredient = "Adamant bolts";
 	
     @Override
     public void onStart() {
@@ -35,17 +34,17 @@ public class Main extends Script {
     }
     
     private enum State {
-		BANK_INVENTORY, WAIT, CLEAN, STOP// Declares the different states of the program.
+		BANK_INVENTORY, WAIT, CLEAN, // Declares the different states of the program.
 	};
 
 	private State getState()
 	{
 		long timeSinceLastAnimating = System.currentTimeMillis() - lastTimeNotAnimating; // This is the time in milliseconds since last animation.
-    	if(timeSinceLastAnimating > 4000) // If its been more than 4 seconds.
+    	if(timeSinceLastAnimating > 12000) // If its been more than 4 seconds.
     		isSmithing = false;
     	RS2Widget smithingLevelWidget = getWidgets().get(233, 0);
 
-    	if(smithingLevelWidget != null && smithingLevelWidget.isVisible() && smithingLevelWidget.getMessage().contains("Herblore"))
+    	if(smithingLevelWidget != null && smithingLevelWidget.isVisible() && smithingLevelWidget.getMessage().contains("Fletching"))
     		return State.CLEAN;
     	if(myPlayer().isMoving() || myPlayer().isAnimating())
     	{
@@ -61,11 +60,6 @@ public class Main extends Script {
     	{
     		return State.WAIT;
     	}
-		if(!getBank().contains(ingredient) && !inventory.contains(ingredient))
-		{
-			stop();
-		}
-		
 		
 		return State.CLEAN;
 		
@@ -93,10 +87,10 @@ public class Main extends Script {
                     }
 
                 }.sleep();
-				RS2Widget smithWidget = getWidgets().get(309, 4);
+				RS2Widget smithWidget = getWidgets().get(582, 2);
 				if(smithWidget != null)
 				{
-					smithWidget.interact("Make All");
+					smithWidget.interact("Make 10 sets");
 					isSmithing = true;					
 					lastTimeNotAnimating = System.currentTimeMillis();
 					getMouse().moveRandomly();
@@ -105,68 +99,16 @@ public class Main extends Script {
 				}
 				else if(inventory.contains(potion) || inventory.contains(ingredient))
 				{
-					int harrToUse = random(0, (int)inventory.getAmount(potion));
-					int goatToUse = random(0, (int)inventory.getAmount(ingredient));
-					int harrSlot = 99;
-					int goatSlot = 99;
-					
-					int harrI = 0;
-					int goatI = 0;
-					for(int i = 0; i < 28; i++){
-						Item item = inventory.getItemInSlot(i);
-						if(item != null)
-						{
-							if(harrSlot == 99 &&item.getName().equals(potion))
-							{
-								if(harrI == harrToUse)
-								{
-									harrSlot = i;
-								}
-								harrI++;
-							}
-							if(goatSlot == 99 && item.getName().equals(ingredient))
-							{
-								if(goatI == goatToUse)
-								{
-									goatSlot = i;
-								}
-								goatI++;
-							}
-							if(goatSlot != 99 && harrSlot != 99)
-								break;
-						}
-					}
-										
-					if(goatSlot != 99 && harrSlot != 99)
-					{
-						if(random(0,100) >= selectionBias)
-						{
-							mouse.click(inventory.getMouseDestination(harrSlot));
-							mouse.click(inventory.getMouseDestination(goatSlot));
-						}
-						else
-						{
-							mouse.click(inventory.getMouseDestination(goatSlot));
-							mouse.click(inventory.getMouseDestination(harrSlot));
-						}
-					}				
-					
-					
-					// Basically, all this code does,
-					// is gets a random number from 0 to the number of the item we have.
-					// then it will figure out which slot that random number of that item is in.
-					// it will do that for both items we need
-					// then once its done it will randomly choose between clicking the first item then second or second then first.
-
-				}			
+					inventory.getItem(potion).interact("Use"); // You can use this instead of that other code, that other code also works but this is more efficient for the API.
+					inventory.getItem(ingredient).interact("Use");
+				}
 				
 				
 				
 				
         	}
     		
-    		break; 	
-    	
+    		break;
     		
     	case WAIT:
     		break;    		// You should break here instead of return 700, because the return at the end of the function will be called anyway.
@@ -207,11 +149,7 @@ public class Main extends Script {
 				new ConditionalSleep(3000) { // Same deal, shouldn't take longer than 3s
 					@Override
 					public boolean condition() throws InterruptedException {
-						if(!getBank().contains(ingredient) && !inventory.contains(ingredient))
-						{
-							stop();
-						}
-						getBank().withdraw(potion, 14);
+						getBank().withdraw(potion, 20000);
 						return (getInventory().contains(potion));
 					}
 				}.sleep();
@@ -226,7 +164,7 @@ public class Main extends Script {
 				new ConditionalSleep(3000) {
 					@Override
 					public boolean condition() throws InterruptedException {
-						getBank().withdraw(ingredient, 14);
+						getBank().withdraw(ingredient, 20000);
 						return (getInventory().contains(ingredient)); 
 					}
 				}.sleep();

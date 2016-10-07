@@ -13,14 +13,14 @@ import java.awt.*;
 import java.util.LinkedList; 
 
  
-@ScriptManifest(name = "potmaker", author = "Plague Doctor", version = 1.0, info = "Cleans Toadflax.", logo = "http://i.imgur.com/DAL7Mii.png")
+@ScriptManifest(name = "Diamond cutter", author = "Plague Doctor", version = 1.0, info = "Cleans Toadflax.", logo = "http://i.imgur.com/DAL7Mii.png")
 public class Main extends Script { 
 
 	private long lastTimeNotAnimating;
 	private int selectionBias = random(15,85);
 	private boolean isSmithing;
-	private String potion = "Vial of water";
-	private String ingredient = "Snapdragon";
+	private String potion = "Chisel";
+	private String ingredient = "Diamond";
 	
     @Override
     public void onStart() {
@@ -35,7 +35,7 @@ public class Main extends Script {
     }
     
     private enum State {
-		BANK_INVENTORY, WAIT, CLEAN, STOP// Declares the different states of the program.
+		BANK_INVENTORY, WAIT, CLEAN, // Declares the different states of the program.
 	};
 
 	private State getState()
@@ -61,11 +61,6 @@ public class Main extends Script {
     	{
     		return State.WAIT;
     	}
-		if(!getBank().contains(ingredient) && !inventory.contains(ingredient))
-		{
-			stop();
-		}
-		
 		
 		return State.CLEAN;
 		
@@ -149,8 +144,7 @@ public class Main extends Script {
 							mouse.click(inventory.getMouseDestination(goatSlot));
 							mouse.click(inventory.getMouseDestination(harrSlot));
 						}
-					}				
-					
+					}
 					
 					// Basically, all this code does,
 					// is gets a random number from 0 to the number of the item we have.
@@ -158,15 +152,14 @@ public class Main extends Script {
 					// it will do that for both items we need
 					// then once its done it will randomly choose between clicking the first item then second or second then first.
 
-				}			
+				}
 				
 				
 				
 				
         	}
     		
-    		break; 	
-    	
+    		break;
     		
     	case WAIT:
     		break;    		// You should break here instead of return 700, because the return at the end of the function will be called anyway.
@@ -207,11 +200,7 @@ public class Main extends Script {
 				new ConditionalSleep(3000) { // Same deal, shouldn't take longer than 3s
 					@Override
 					public boolean condition() throws InterruptedException {
-						if(!getBank().contains(ingredient) && !inventory.contains(ingredient))
-						{
-							stop();
-						}
-						getBank().withdraw(potion, 14);
+						getBank().withdraw(potion, 1);
 						return (getInventory().contains(potion));
 					}
 				}.sleep();
@@ -226,7 +215,7 @@ public class Main extends Script {
 				new ConditionalSleep(3000) {
 					@Override
 					public boolean condition() throws InterruptedException {
-						getBank().withdraw(ingredient, 14);
+						getBank().withdraw(ingredient, 27);
 						return (getInventory().contains(ingredient)); 
 					}
 				}.sleep();
