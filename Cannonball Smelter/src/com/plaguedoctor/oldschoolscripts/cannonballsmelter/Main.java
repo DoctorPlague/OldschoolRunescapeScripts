@@ -6,6 +6,7 @@ import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 import org.osbot.rs07.utility.ConditionalSleep;
 
+
 import java.awt.*;
 
 import java.awt.image.BufferedImage;
@@ -25,8 +26,7 @@ public class Main extends Script {
     private String status = "Starting bot"; 
     private Font runescape_chat_font; // Font used by paint
 	private BufferedImage paintBG; // Background image used for paint, loaded when GUI is done.	
-	private long startTime;	 	
-	// private boolean botStarted = false;
+	private long startTime;	
 	private boolean drawPaint = false;
 	private int cannonballValue = 0;
 	private int steelBarValue = 0;
@@ -105,6 +105,13 @@ public class Main extends Script {
 				{
 					status = "Opening bank";
 					getBank().open();
+					new ConditionalSleep(10000) {
+						@Override
+						
+						public boolean condition() throws InterruptedException {
+							return bank.isOpen();
+						}
+					}.sleep();
 				}
 				else
 				{
@@ -112,10 +119,24 @@ public class Main extends Script {
 					if(!inventory.contains("Ammo mould"))
 					{
 						getBank().withdraw("Ammo mould", 1);
+						new ConditionalSleep(10000) {
+							@Override
+							
+							public boolean condition() throws InterruptedException {
+								return inventory.contains("Ammo mould");
+							}
+						}.sleep();
 					}
 					getBank().depositAllExcept("Ammo mould");
 					status = "Withdrawing Steel bars";
 					getBank().withdraw("Steel bar", 27);
+					new ConditionalSleep(10000) {
+						@Override
+						
+						public boolean condition() throws InterruptedException {
+							return inventory.contains("Steel bar");
+						}
+					}.sleep();
 				}	
 				
 			}
@@ -205,12 +226,14 @@ public class Main extends Script {
     LinkedList<MousePathPoint> mousePath = new LinkedList<MousePathPoint>();
     public class MousePathPoint extends Point {
 
-        private long finishTime;
-        private double lastingTime;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 8948307125632779948L;
+		private long finishTime;
 
         public MousePathPoint(int x, int y, int lastingTime) {
             super(x, y);
-            this.lastingTime = lastingTime;
             finishTime = System.currentTimeMillis() + lastingTime;
         }
 
@@ -234,7 +257,11 @@ public class Main extends Script {
     	
         while (!mousePath.isEmpty() && mousePath.peek().isUp())
             mousePath.remove();
+    	
         Point clientCursor = mouse.getPosition();
+        
+        g.drawLine(clientCursor.x, clientCursor.y, clientCursor.x, clientCursor.y);
+        
         MousePathPoint mpp = new MousePathPoint(clientCursor.x, clientCursor.y, 500);
         if (mousePath.isEmpty() || !mousePath.getLast().equals(mpp))
             mousePath.add(mpp);
