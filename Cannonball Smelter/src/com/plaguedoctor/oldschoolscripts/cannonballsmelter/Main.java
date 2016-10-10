@@ -118,6 +118,7 @@ public class Main extends Script {
 					status = "Depositing Cannonballs";
 					if(!inventory.contains("Ammo mould"))
 					{
+						status = "Withdrawing Ammo mould";
 						getBank().withdraw("Ammo mould", 1);
 						new ConditionalSleep(10000) {
 							@Override
@@ -201,7 +202,7 @@ public class Main extends Script {
  
     @Override
     public void onExit() {
-        log("Thanks for running my Tea Thiever!");
+        log("Thanks for running my Cannonball Smelter!");
     }
     
     private String ft(long duration) {
