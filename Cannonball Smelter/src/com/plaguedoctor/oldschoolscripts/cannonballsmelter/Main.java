@@ -7,6 +7,7 @@ import org.osbot.rs07.script.ScriptManifest;
 import org.osbot.rs07.utility.ConditionalSleep;
 
 
+
 import java.awt.*;
 
 import java.awt.image.BufferedImage;
@@ -151,11 +152,11 @@ public class Main extends Script {
 		case SMELT:
 			if(selectedFurnace.getFurnaceArea().contains(myPlayer()))
 			{
-				RS2Widget smithWidget = getWidgets().get(309, 4);
+				RS2Widget smithWidget = getWidgets().get(309, 7);
 				if(smithWidget != null)
 				{
 					status = "Selecting Make All";
-					smithWidget.interact("Make All");
+					smithWidget.interact();
 					lastTimeNotAnimating = System.currentTimeMillis();
 					status = "Smelting Cannonballs";					
 					isSmithing = true;
@@ -241,7 +242,10 @@ public class Main extends Script {
         public boolean isUp() {
             return System.currentTimeMillis() > finishTime;
         }
-    }    
+    }     
+        
+    
+    
     
     
     @Override
