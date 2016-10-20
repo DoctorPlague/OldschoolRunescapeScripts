@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
  
-@ScriptManifest(author = "Plague Doctor", info = "Smelts cannonballs and banks them", name = "Cannonball Smelter", version = 0, logo = "http://i.imgur.com/LMPJVXx.png")
+@ScriptManifest(author = "Plague Doctor", info = "Smelts cannonballs and banks them", name = "PCannonballSmelter", version = 0, logo = "http://i.imgur.com/LMPJVXx.png")
 public class Main extends Script {
 	
 	private Furnace selectedFurnace;	
