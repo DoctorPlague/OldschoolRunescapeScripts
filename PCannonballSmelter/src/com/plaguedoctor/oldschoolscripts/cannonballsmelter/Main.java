@@ -130,12 +130,16 @@ public class Main extends Script {
 						}.sleep();
 					}
 					getBank().depositAllExcept("Ammo mould");
-					status = "Withdrawing Steel bars";
+					status = "Withdrawing Steel bars";					
 					getBank().withdraw("Steel bar", 27);
 					new ConditionalSleep(10000) {
 						@Override
 						
 						public boolean condition() throws InterruptedException {
+							if(!getBank().contains("Steel bar") && !inventory.contains("Steel bar")) {
+								logoutTab.logOut();
+								stop();
+							}
 							return inventory.contains("Steel bar");
 						}
 					}.sleep();
