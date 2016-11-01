@@ -202,7 +202,7 @@ public class Main extends Script {
 			break;		
     	
     	}
-        return random(600, 800);
+    	return random(600, 800);      
     }
  
     @Override
